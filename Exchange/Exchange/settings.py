@@ -27,8 +27,8 @@ load_dotenv()
 SECRET_KEY = "0U18qVJY2NRwClsEszGV_SBoPKB4-oHP0t3EP418tN4"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG")
-ALLOWED_HOSTS = []
+DEBUG = os.getenv("DEBUG", "True").lower() == "true"
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -90,16 +90,28 @@ WSGI_APPLICATION = "Exchange.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv("DATABASE_NAME"),
-        'USER': os.getenv("DATABASE_USER"),
-        'PASSWORD': os.getenv("DATABASE_PASSWORD"),
-        'HOST': os.getenv("DATABASE_HOST"),
-        'PORT': os.getenv("DATABASE_PORT"),
+# Database configuration
+# Check if we're in a container (Kubernetes/Docker)
+if os.getenv("DATABASE_HOST"):
+    # Production/Docker deployment - PostgreSQL
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv("DATABASE_NAME", "crypto_exchange"),
+            'USER': os.getenv("username", "postgres"),
+            'PASSWORD': os.getenv("password", "password"),
+            'HOST': os.getenv("DATABASE_HOST", "localhost"),
+            'PORT': os.getenv("DATABASE_PORT", "5432"),
+        }
     }
-}
+else:
+    # Local development - SQLite
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
