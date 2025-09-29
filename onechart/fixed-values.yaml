@@ -1,0 +1,51 @@
+image:
+  repository: registry.hamdocker.ir/mojtabashahin8/crypto-exchange
+  tag: v4
+  pullPolicy: Always
+
+imagePullSecrets:
+  - hamdocker-registry-secret
+
+containerPort: 8000
+
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: 8000
+  settings:
+    initialDelaySeconds: 30
+    periodSeconds: 30
+
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: 8000
+  settings:
+    initialDelaySeconds: 30
+    periodSeconds: 30
+
+vars:
+  DATABASE_NAME: crypto_db
+  DATABASE_HOST: crypto-postgres-rw.moj.svc.cluster.local
+  DATABASE_PORT: "5432"
+
+existingSecrets:
+  - name: crypto-user
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+command: "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+
+ingress:
+  host: crypto-exchange.local
+  ingressClassName: nginx
+  path: /
+  pathType: Prefix
