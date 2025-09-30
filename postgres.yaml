@@ -1,0 +1,62 @@
+apiVersion: v1
+stringData:
+  username: crypto_user
+  password: mypassword123
+kind: Secret
+metadata:
+  name: crypto-user
+  namespace: moj
+type: kubernetes.io/basic-auth
+---
+apiVersion: v1
+stringData:
+  username: crypto_admin
+  password: superstrongpassword
+kind: Secret
+metadata:
+  name: crypto-admin
+  namespace: moj
+type: kubernetes.io/basic-auth
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: crypto-postgres
+  namespace: moj
+spec:
+  imageName: ghcr.io/cloudnative-pg/postgresql:15.4
+  instances: 2
+  startDelay: 30
+  stopDelay: 30
+  primaryUpdateStrategy: supervised
+
+  postgresql:
+    parameters:
+      shared_buffers: 256MB
+      pg_stat_statements.max: '10000'
+      pg_stat_statements.track: all
+      auto_explain.log_min_duration: '10s'
+    pg_hba:
+      - host all all 10.244.0.0/16 md5
+
+  bootstrap:
+    initdb:
+      database: crypto_db
+      owner: crypto_user
+      secret:
+        name: crypto-user
+
+  superuserSecret:
+    name: crypto-admin
+
+  storage:
+    storageClass: standard
+    size: 10Mi
+
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "0.1"
+    limits:
+      memory: "512Mi"
+      cpu: "0.2"
