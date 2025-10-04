@@ -160,6 +160,7 @@ data:
       hosts: ['${ELASTICSEARCH_HOST:elasticsearch}:${ELASTICSEARCH_PORT:9200}']
       username: ${ELASTICSEARCH_USERNAME}
       password: ${ELASTICSEARCH_PASSWORD}
+      ssl.verification_mode: none
 ---
 apiVersion: apps/v1
 kind: DaemonSet
@@ -190,7 +191,7 @@ spec:
         ]
         env:
         - name: ELASTICSEARCH_HOST
-          value: crypto-es-es-http
+          value: https://crypto-es-es-http
         - name: ELASTICSEARCH_PORT
           value: "9200"
         - name: ELASTICSEARCH_USERNAME
